@@ -1,0 +1,102 @@
+E html>
+<html>
+  <head>
+    <style>
+       /* Set the size of the div element that contains the map */
+      #map {
+        height: 400px;  /* The height is 400 pixels */
+        width: 600px;  /* The width is 600 pixels */
+       }
+    </style>
+  </head>
+
+
+  <body>
+    <!--The div element for the map -->
+    <div id="map"></div>
+
+    
+
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDBETZWBvuydfnNmvrauFIWHUWIUBmcrXU"></script>
+    <script>
+    // 1. Initialize GeoCoder
+        const geocoder = new google.maps.Geocoder();
+
+        // 2. The text address that you want to convert to coordinates
+        let address = "204 S Clark St, Chicago, IL 60604";
+
+        // 3. Obtain coordinates from the API
+        geocoder.geocode({ address: address }, (results, status) => {
+            console.log(status)
+        if (status === "OK") {
+        // Display response in the console
+        console.log(results[0].geometry.location.toString());
+        } else {
+        alert("Geocode error: " + status);
+    }
+            });
+
+
+      // Initialize and add the map
+      let map;
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 13,
+          center: {lat: 41.88, lng: -87.63}
+        });
+
+        // Add Distance Matrix here
+        const service = new google.maps.DistanceMatrixService(); // instantiate Distance Matrix service
+      const matrixOptions = {
+        origins: ["41.878729,-87.6301087", "41.8855277,-87.6440611"], // shop locations
+        destinations: ["233 S Wacker Dr, Chicago, IL 60606"], // customer address
+        travelMode: 'DRIVING',
+        unitSystem: google.maps.UnitSystem.IMPERIAL
+      };
+
+      //addresses of all the signed-up shops
+      const shopaddresses = [
+          {lat: 41.878729, lng: -87.6301087}, // Shop 1
+          {lat: 41.8855277, lng: -87.6440611} // Shop 2
+        ];
+
+        // maximum time the consumer would be willing to travel to pick up the item
+        const mostseconds = 3000; // 5 mins
+
+
+      // Call Distance Matrix service
+      service.getDistanceMatrix(matrixOptions, callback);
+
+      // Callback function used to process Distance Matrix response
+      function callback(response, status) {
+        if (status !== "OK") {
+          alert("Error with distance matrix");
+          return;
+        }
+        console.log(response);
+
+          
+          let drivetime = "";
+          let storeaddress = "";
+
+         for (let i=0; i<response.rows.length; i++) {
+            const routeseconds = response.rows[i].elements[0].duration.value;
+            const routedistance = response.rows[i].elements[0].distance.value;
+            if (routeseconds > 0 && routeseconds < mostseconds) {
+              drivetime = response.rows[i].elements[0].duration.text; // hours and minutes
+              storeaddress = response.originAddresses[i]; // the address of the shop
+              let pos = matrixOptions[origin]; // longitude and latitude of the shop
+              // create marker for a shopaddress
+                    let position = shopaddresses[i];
+                    let mk = new google.maps.Marker({position: position, map: map});
+                alert ("The location of the shop with your item is " + storeaddress + " (which is a " + drivetime + " drive)");
+            }
+            }
+        }
+    }    
+      
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCh5caiTmUTnnuxfuwLHI5Iaqw8ph87_wE&callback=initMap">
+    </script>
+  </body>
+</html>
